@@ -9,9 +9,11 @@
 #import "PhotoMapViewController.h"
 #import <MapKit/MapKit.h> 
 
-@interface PhotoMapViewController ()
+@interface PhotoMapViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 
 @property (weak, nonatomic) IBOutlet MKMapView *mapView;
+@property (strong, nonatomic) UIImagePickerController *imagePickerVC;
+@property (strong, nonatomic) UIImage *capturedImage;
 
 @end
 
@@ -19,8 +21,38 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-   MKCoordinateRegion sfRegion = MKCoordinateRegionMake(CLLocationCoordinate2DMake(37.783333, -122.416667), MKCoordinateSpanMake(0.1, 0.1));
+    
+    self.imagePickerVC = [UIImagePickerController new];
+    self.imagePickerVC.delegate = self;
+    self.imagePickerVC.allowsEditing = YES;
+    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
+        self.imagePickerVC.sourceType = UIImagePickerControllerSourceTypeCamera;
+    }
+    else {
+        NSLog(@"Camera 🚫 available so we will use photo library instead");
+        self.imagePickerVC.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    }
+    
+    
+    MKCoordinateRegion sfRegion = MKCoordinateRegionMake(CLLocationCoordinate2DMake(37.783333, -122.416667), MKCoordinateSpanMake(0.1, 0.1));
     [self.mapView setRegion:sfRegion animated:NO];
+}
+
+- (IBAction)onCameraTap:(id)sender {
+    [self presentViewController:self.imagePickerVC animated:YES completion:nil];
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info {
+    
+    // Get the image captured by the UIImagePickerController
+    UIImage *editedImage = info[UIImagePickerControllerEditedImage];
+
+    // Do something with the images (based on your use case)
+    self.capturedImage = editedImage;
+    
+    // Dismiss UIImagePickerController to go back to your original view controller
+    [self dismissViewControllerAnimated:YES completion:nil];
+    [self performSegueWithIdentifier:@"tagSegue" sender:nil];
 }
 
 - (void)didReceiveMemoryWarning {
